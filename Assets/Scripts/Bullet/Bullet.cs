@@ -28,4 +28,16 @@ public class Bullet : MonoBehaviour
     {
         this.bulletData = bulletData;
     }
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        IDamageable damageable = collision.GetComponent<IDamageable>();
+        if (damageable != null)
+        {
+            if (collision.CompareTag("Enemy"))
+            {
+                damageable.Damage(bulletData.damage);
+                BulletSpawnPool.instance.AddToPool(gameObject);
+            }
+        }
+    }
 }
