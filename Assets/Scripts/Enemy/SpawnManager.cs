@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,8 +11,8 @@ public class SpawnManager : MonoBehaviour
     public List<Enemy> enemies = new List<Enemy>();
 
     private Vector2[,] matrix;
-    private Vector2 startPoint = new Vector2(-2f, 4.5f);
-    private float step = .5f;
+    private Vector2 startPoint = new Vector2(-2.4f, 4.5f);
+    private float step = .6f;
     private int numRows = 5;
     private int numCols = 9;
 
@@ -28,8 +29,8 @@ public class SpawnManager : MonoBehaviour
     {
         matrix = new Vector2[numRows, numCols];
         DrawMatrix();
-        CaculateShape();
-        SpawnEnemy();
+        CalculateShape();
+        GenerateEnemies();
         StartCoroutine(SpawnEnemies());
     }
 
@@ -70,110 +71,126 @@ public class SpawnManager : MonoBehaviour
                 enemies[i].SetTargetPosition(squareList[i]);
             }
         }
+        yield return new WaitForSeconds(2f);
         for (int i = 0; i < enemies.Count; i++)
         {
             enemies[i].GetComponent<BoxCollider2D>().enabled = true;
         }
     }
 
-    private void CaculateShape()
+    private void CalculateShape()
     {
-        //Square
-        int centerX = numCols / 2;
-        int centerY = numRows / 2;
-        List<Vector2> newListSquare = new List<Vector2>();
-        for (int i = 0; i < 4; i++)
-        {
-            for (int j = 0; j < 4; j++)
-            {
-                int row = centerY - 1 + i;
-                int col = centerX - 1 + j;
-                newListSquare.Add(matrix[row, col]);
+        int centerCol = numCols / 2;
+        int centerRow = numRows / 2;
 
+
+        shapeDir.Add(shapeType.Square, GenerateShape(centerRow, centerCol, 4, 4));
+
+        shapeDir.Add(shapeType.Diamond, GenerateDiamond(centerRow, centerCol));
+
+        shapeDir.Add(shapeType.Triangle, GenerateTriangle(centerRow, centerCol));
+
+        shapeDir.Add(shapeType.Rectangle, GenerateRectangle());
+    }
+
+    private List<Vector2> GenerateShape(int centerY, int centerX, int rows, int cols)
+    {
+        List<Vector2> newList = new List<Vector2>();
+
+        for (int i = 0; i < rows; i++)
+        {
+            for (int j = 0; j < cols; j++)
+            {
+                int row = centerY - rows / 2 + i;
+                int col = centerX - cols / 2 + j;
+                newList.Add(matrix[row, col]);
             }
         }
-        shapeDir.Add(shapeType.Square, newListSquare);
-        int center = numCols / 2;
 
-        //Diamond
-        List<Vector2> newListDiamond = new List<Vector2>();
+        return newList;
+    }
+
+    private List<Vector2> GenerateDiamond(int centerRow, int centerCol)
+    {
+        List<Vector2> newList = new List<Vector2>();
+
         for (int i = 0; i < numRows; i++)
         {
             for (int j = 0; j < numCols; j++)
             {
-                if (j == center)
+                if (j == centerCol)
                 {
-                    if (i == 0 || i == numRows - 1) newListDiamond.Add(matrix[i, j]);
+                    if (i == 0 || i == numRows - 1) newList.Add(matrix[i, j]);
                     else if (i == 2)
                     {
-                        newListDiamond.Add(matrix[i, j - i - 1]);
-                        newListDiamond.Add(matrix[i, j - i + 1]);
-                        newListDiamond.Add(matrix[i, j - i]);
-                        newListDiamond.Add(matrix[i, j + i - 1]);
-                        newListDiamond.Add(matrix[i, j + i + 1]);
-                        newListDiamond.Add(matrix[i, j + i]);
+                        newList.Add(matrix[i, j - i - 1]);
+                        newList.Add(matrix[i, j - i]);
+                        newList.Add(matrix[i, j - i + 1]);
+                        newList.Add(matrix[i, j + i - 1]);
+                        newList.Add(matrix[i, j + i]);
+                        newList.Add(matrix[i, j + i + 1]);
                     }
                     else if (i == 1)
                     {
-                        newListDiamond.Add(matrix[i, j - i - 1]);
-                        newListDiamond.Add(matrix[i, j - i]);
-                        newListDiamond.Add(matrix[i, j + i + 1]);
-                        newListDiamond.Add(matrix[i, j + i]);
+                        newList.Add(matrix[i, j - i - 1]);
+                        newList.Add(matrix[i, j - i]);
+                        newList.Add(matrix[i, j + i + 1]);
+                        newList.Add(matrix[i, j + i]);
                     }
                     else if (i == 3)
                     {
-                        newListDiamond.Add(matrix[i, j - i + 2]);
-                        newListDiamond.Add(matrix[i, j - i + 1]);
-                        newListDiamond.Add(matrix[i, j + i - 2]);
-                        newListDiamond.Add(matrix[i, j + i - 1]);
+                        newList.Add(matrix[i, j + i - 1]);
+                        newList.Add(matrix[i, j - i + 1]);
+                        newList.Add(matrix[i, j + i - 2]);
+                        newList.Add(matrix[i, j - i + 2]);
                     }
                 }
             }
         }
-        shapeDir.Add(shapeType.Diamond, newListDiamond);
+        return newList;
+    }
 
-        //Triangle
-        List<Vector2> newListTriangle = new List<Vector2>();
+    private List<Vector2> GenerateTriangle(int centerRow, int centerCol)
+    {
+        List<Vector2> newList = new List<Vector2>();
+
         for (int i = 0; i < numRows; i++)
         {
-            for (int j = 0; j < numCols; j++)
+            int startCol = Math.Max(centerCol - i, 0);
+            int endCol = Math.Min(centerCol + i, numCols - 1);
+
+            for (int j = startCol; j <= endCol; j++)
             {
-                if (j == center)
+                if (j == startCol || j == endCol || i == numRows - 1)
                 {
-                    if (i == 0) newListTriangle.Add(matrix[i, j]);
-                    else if (i < numRows - 1)
-                    {
-                        newListTriangle.Add(matrix[i, j - i]);
-                        newListTriangle.Add(matrix[i, j + i]);
-                    }
-                }
-                if (i == numRows - 1)
-                {
-                    newListTriangle.Add(matrix[i, j]);
+                    newList.Add(matrix[i, j]);
                 }
             }
         }
-        shapeDir.Add(shapeType.Triangle, newListTriangle);
-        //Rectangle
-        List<Vector2> newListRectangle = new List<Vector2>();
+
+        return newList;
+    }
+
+
+    private List<Vector2> GenerateRectangle()
+    {
+        List<Vector2> newList = new List<Vector2>();
+
         for (int i = 0; i < numRows - 2; i++)
         {
             for (int j = 1; j < numCols - 1; j++)
             {
-                if (i != 1)
+                if (i != 1 || j == 1 || j == numCols - 2)
                 {
-                    newListRectangle.Add(matrix[i, j]);
-                }
-                else if (j == 1 || j == numCols - 2)
-                {
-                    newListRectangle.Add(matrix[i, j]);
+                    newList.Add(matrix[i, j]);
                 }
             }
         }
-        shapeDir.Add(shapeType.Rectangle, newListRectangle);
+
+        return newList;
     }
 
-    private void SpawnEnemy()
+    private void GenerateEnemies()
     {
         for (int i = 0; i < 16; i++)
         {

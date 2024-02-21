@@ -26,17 +26,6 @@
             ],
             "bindings": [
                 {
-                    "name": "",
-                    "id": "1bb10270-2b67-47f7-9a07-b6c7afb35f11",
-                    "path": "",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Movement",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
                     "name": "WASD",
                     "id": "ba4fa3fe-bb45-43af-b1e7-0955c2c9eefb",
                     "path": "2DVector",

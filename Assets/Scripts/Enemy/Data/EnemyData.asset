@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: EnemyData
   m_EditorClassIdentifier: 
   movementSpeed: 2
-  maxHp: 4
+  maxHp: 5

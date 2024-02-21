@@ -39,12 +39,12 @@ public class Player : MonoBehaviour
     void Update()
     {
         stateMachine.currentState.LogicUpdate();
-        isAttack = inputHandle.normalAttackInput;
+        //isAttack = inputHandle.normalAttackInput;
         if (!BulletSpawnPool.instance.CheckIfBulletInPool(playerData.bulletData.bulletPrefab))
         {
             BulletSpawnPool.instance.AddBulletPrefabToPool(playerData.bulletData.bulletPrefab);
         }
-        if (isAttack && Time.time >= startTime + playerData.bulletData.rechargeTime)
+        if (/*isAttack && */Time.time >= startTime + playerData.bulletData.rechargeTime)
         {
             startTime = Time.time;
             FireBullet();
